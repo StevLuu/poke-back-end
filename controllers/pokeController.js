@@ -1,13 +1,13 @@
 const express = require('express')
 const router = express()
-const Item = require ('../models/poke')
+const Poke = require ('../models/poke')
 
 router.get('/', async (req, res)=>{
     try{
-        const items = await Item.find()
+        const poke = await Poke.find()
         res.send({
             success: true,
-            data: items
+            data: poke
         })
     }catch(err){
         res.send({
@@ -20,10 +20,10 @@ router.get('/', async (req, res)=>{
 router.post('/', async (req, res)=>{
     console.log(req.body)
     try{
-        const newItem = await Item.create(req.body)
+        const newPoke = await Poke.create(req.body)
         res.send({
             success: true,
-            data: newItem
+            data: newPoke
         })
     }catch(err){
         res.send({
@@ -35,13 +35,13 @@ router.post('/', async (req, res)=>{
 
 router.get('/:id', async (req, res)=>{
     try{
-        const item = await Item.findById(req.params.id)
-        if(!item){
-            throw new Error("No item by that id here?!")
+        const poke = await Poke.findById(req.params.id)
+        if(!poke){
+            throw new Error("No poke by that id here?!")
         }
         res.send({
             success: true,
-            data: item
+            data: poke
         })
     }catch(err){
         res.send({
@@ -54,10 +54,10 @@ router.get('/:id', async (req, res)=>{
 
 router.delete('/:id', async (req, res)=>{
     try{
-        const item = await Item.findByIdAndDelete(req.params.id)
+        const poke = await Poke.findByIdAndDelete(req.params.id)
         res.send({
             success: true,
-            data: item
+            data: poke
         })
     }catch(err){
         res.send({
@@ -70,10 +70,10 @@ router.delete('/:id', async (req, res)=>{
 
 router.put('/:id', async (req, res)=>{
     try{
-        const item = await Item.findByIdAndUpdate(req.params.id, req.body, {new: true} )
+        const poke = await Poke.findByIdAndUpdate(req.params.id, req.body, {new: true} )
         res.send({
             success: true,
-            data: item
+            data: poke
         })
     }catch(err){
         res.send({

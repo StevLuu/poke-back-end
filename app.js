@@ -7,7 +7,9 @@ const morgan = require ('morgan')
 const app = express();
 
 
+
 const pokeController = require('./controllers/pokeController')
+const userController = require('./controllers/userController');
 
 const mongoURI = process.env.MONGO_URI
 // Configuration
@@ -25,8 +27,9 @@ app.use(cors())
 app.use(urlencoded({extended: true}))
 app.use(express.json())
 
+//USER CONTROLLER
+app.use('/users', userController)
 app.use('/pokes', pokeController)
-
 app.get('/', (req, res)=>{
     res.send("hello, world")
 })
