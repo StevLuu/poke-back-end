@@ -7,9 +7,9 @@ const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     password: { type: String, required: true },
     // poke: { type: mongoose.Schema.Types.ObjectId, ref: 'Poke' },
-    party: Array,
-    pokes: Array,
-    items: Array
+    // party: Array,
+    // pokes: Array,
+    // items: Array
 },
     { timestamps: true })
 

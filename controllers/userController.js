@@ -5,37 +5,44 @@ const cookieParser = require('cookie-parser');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const withAuth = require('../middleware/auth');
-const isLoggedIn = ('../middleware/isLoggedIn')
+const withLog = require('../middleware/loggedInCheck');
 
 router.use(cookieParser());
 
-router.get('/checkToken', withAuth, function(req, res) {
+router.get('/checkToken', withAuth, function (req, res) {
     res.sendStatus(200);
-  });
+});
 
 //SHOW USER LOGIN FORM ROUTE(GET)
 router.get('/home', function (req, res) {
     res.send('Welcome!');
 });
-router.get('/secret', withAuth, function (req, res) {
+//router.get('/secret', withLog, function (req, res) {
+router.get('/secret', function (req, res) {
+    console.log(req.session.isLoggedIn)
     res.send('The password is potato');
 });
 
-// POST route to register a user
-router.post('/register', function (req, res) {
-    const { username, password } = req.body;
-    const user = new User({ username, password });
-    user.save(function (err) {
-        if (err) {
-            res.status(500)
-                .send("Error registering new user please try again.");
-        } else {
-            res.status(200).send("Welcome to the club!");
-        }
-    });
-});
+// POST route to register a NEW user
+// router.post('/new', function (req, res) {
+//     const { username, password, name } = req.body;
+//     const user = new User({ username, password, name });
+//     console.log(`user.name: ${user.name}`)
+//     user.markModified("username");
+//     user.markModified("password");
+//     // user.markModified("name");
+//     user.save(function (err) {
+//         if (err) {
+//             res.status(500)
+//             console.log()
+//             res.send("Error registering new user please try again.");
+//         } else {
+//             res.status(200).send("Welcome to the club!");
+//         }
+//     });
+// });
 
-router.post('/api/authenticate', function (req, res) {
+router.post('/authenticate', function (req, res) {
     const { username, password } = req.body;
     User.findOne({ username }, function (err, user) {
         if (err) {
@@ -62,6 +69,8 @@ router.post('/api/authenticate', function (req, res) {
                             error: 'Incorrect email or PASSWORD'
                         });
                 } else {
+                    req.session.isLoggedIn = true;
+                    // console.log(`req.session.isLoggedIn: ${req.session.isLoggedIn}`)
                     // Issue token
                     const payload = { username };
                     const token = jwt.sign(payload, process.env.SESSION_SECRET, {
@@ -69,6 +78,7 @@ router.post('/api/authenticate', function (req, res) {
                     });
                     res.cookie('token', token, { httpOnly: true })
                         .sendStatus(200);
+                    // console.log(` req.cookies.token: ${JSON.stringify(req.cookie)}`)
                 }
             });
         }
@@ -118,23 +128,31 @@ router.post("/login", async (req, res) => {
 
 
 //CREATE A NEW USER ROUTE(POST)
-router.post('/new', async (req, res) => {
-    //CREATES AND STORES ENCRYPTED PASSWORD
-    const hashedPassword = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10))
-    //CHANGES USER PASSWORD TO ENCRYPTED PASSWORD
-    req.body.password = hashedPassword
-    //CREATES USER IN DB
-    //TRY CATCH BLOCK IN CASE CREATE USER FAILS VALIDATION
+router.post('/register', async (req, res) => {
+    console.log(req.body)
     try {
-        const newUser = await User.create(req.body);
-        //SENDS USER TO USER SHOW PAGE
-        res.redirect(`/users`)
-        //NOTE-NEEDS ELABORATION WHY DID VALIDATION FAIL, RETURN SPECIFIC MESSAGE TO USER REROUTE USER TO CREATE USER PAGE??
-    } catch (err) {
-        console.log(err)
-        if (err.name === 'MongoServerError' && err.code === 11000) {
-            res.send("<h1>That username already exists please try another</h1>\n<a href='/users/new'><button class='create-user-button'>Create a new user</button></a>")
+        console.log("hello")
+        if (await User.findOne({ 'username': req.body.username }) === null) {
+            console.log("doesnt already exists")
+            const newUser = await User.create(req.body)
+            console.log(`NEW trainer name: ${newUser.name}`),
+                res.send({
+                    success: true,
+                    data: newUser
+                })
         }
+        else {
+            console.log("already exists")
+            res.send({
+                success: false,
+                data: err.message
+            })
+        }
+    } catch (err) {
+        res.send({
+            success: false,
+            data: err.message
+        })
     }
 })
 
